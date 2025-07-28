@@ -35,18 +35,14 @@ function FridgeForm({ onAdd, categories }) {
         onChange={(e) => setCount(Number(e.target.value))}
       />
       <input
-        type="text"
+        type="date"
         placeholder="유통기한"
-        onFocus={(e) => (e.target.type = 'date')}
-        onBlur={(e) => (e.target.type = 'text')}
         value={expiryDate}
         onChange={(e) => setExpiryDate(e.target.value)}
       />
       <input
-        type="text"
+        type="date"
         placeholder="소비기한"
-        onFocus={(e) => (e.target.type = 'date')}
-        onBlur={(e) => (e.target.type = 'text')}
         value={useByDate}
         onChange={(e) => setUseByDate(e.target.value)}
       />
