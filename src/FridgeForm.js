@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 function FridgeForm({ onAdd, categories }) {
   const [name, setName] = useState('');
   const [count, setCount] = useState(1);
-  const [expiryDate, setExpiryDate] = useState('');
-  const [useByDate, setUseByDate] = useState('');
+  const [expiryDate, setExpiryDate] = useState(null);
+  const [useByDate, setUseByDate] = useState(null);
   const [category, setCategory] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (name.trim() && category.trim()) {
-      onAdd({ name, count, expiryDate, useByDate, category });
+      onAdd({
+        name,
+        count,
+        expiryDate: expiryDate ? expiryDate.toISOString().split('T')[0] : '',
+        useByDate: useByDate ? useByDate.toISOString().split('T')[0] : '',
+        category,
+      });
       setName('');
       setCount(1);
-      setExpiryDate('');
-      setUseByDate('');
+      setExpiryDate(null);
+      setUseByDate(null);
       setCategory('');
     }
   };
@@ -34,21 +42,19 @@ function FridgeForm({ onAdd, categories }) {
         value={count}
         onChange={(e) => setCount(Number(e.target.value))}
       />
-      <input
-        type="text"
-        placeholder="유통기한"
-        onFocus={(e) => (e.target.type = 'date')}
-        onBlur={(e) => (e.target.type = 'text')}
-        value={expiryDate}
-        onChange={(e) => setExpiryDate(e.target.value)}
+      <DatePicker
+        selected={expiryDate}
+        onChange={(date) => setExpiryDate(date)}
+        dateFormat="yyyy/MM/dd"
+        placeholderText="유통기한"
+        className="form-control"
       />
-      <input
-        type="text"
-        placeholder="소비기한"
-        onFocus={(e) => (e.target.type = 'date')}
-        onBlur={(e) => (e.target.type = 'text')}
-        value={useByDate}
-        onChange={(e) => setUseByDate(e.target.value)}
+      <DatePicker
+        selected={useByDate}
+        onChange={(date) => setUseByDate(date)}
+        dateFormat="yyyy/MM/dd"
+        placeholderText="소비기한"
+        className="form-control"
       />
       <input
         list="categories"
