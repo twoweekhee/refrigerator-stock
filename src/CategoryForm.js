@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function CategoryForm({ onAddCategory }) {
+function CategoryForm({ onAddCategory, onCancel }) {
   const [category, setCategory] = useState('');
 
   const handleSubmit = (e) => {
@@ -13,6 +13,8 @@ function CategoryForm({ onAddCategory }) {
 
   return (
     <form onSubmit={handleSubmit} className="category-form">
+      <button type="button" onClick={onCancel} className="x-btn">X</button>
+
       <input
         type="text"
         placeholder="새 카테고리 이름 (예: 과일 🍅)"

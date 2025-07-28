@@ -15,6 +15,9 @@ function App() {
     return savedCategories ? JSON.parse(savedCategories) : [];
   });
 
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [addingItemCategory, setAddingItemCategory] = useState(null); // New state to track which category is adding an item
+
   useEffect(() => {
     localStorage.setItem('fridgeItems', JSON.stringify(items));
   }, [items]);
@@ -26,6 +29,7 @@ function App() {
   const addCategory = (category) => {
     if (category && !categories.includes(category)) {
       setCategories([...categories, category]);
+      setShowCategoryForm(false); // Hide form after adding
     }
   };
 
@@ -43,11 +47,18 @@ function App() {
     }
     const newItem = { ...item, id: uuidv4(), category };
     setItems([...items, newItem]);
+    setAddingItemCategory(null); // Hide inline form after adding
   };
 
   const removeItem = (id) => {
     const newItems = items.filter((item) => item.id !== id);
     setItems(newItems);
+  };
+
+  const editItem = (id, updatedFields) => {
+    setItems(items.map(item => 
+      item.id === id ? { ...item, ...updatedFields } : item
+    ));
   };
 
   const handleDragEnd = (result) => {
@@ -57,15 +68,15 @@ function App() {
     const sourceCategory = source.droppableId;
     const destinationCategory = destination.droppableId;
 
-    if (sourceCategory === destinationCategory) {
-      const reorderedItems = Array.from(items.filter(item => item.category === sourceCategory));
-      const [movedItem] = reorderedItems.splice(source.index, 1);
-      reorderedItems.splice(destination.index, 0, movedItem);
+    if (destinationCategory === 'trash-can') {
+      removeItem(draggableId);
+    } else if (sourceCategory === destinationCategory) {
+      const itemsInSameCategory = items.filter(item => item.category === sourceCategory);
+      const otherItems = items.filter(item => item.category !== sourceCategory);
+      const [movedItem] = itemsInSameCategory.splice(source.index, 1);
+      itemsInSameCategory.splice(destination.index, 0, movedItem);
 
-      setItems(prevItems => [
-        ...prevItems.filter(item => item.category !== sourceCategory),
-        ...reorderedItems
-      ]);
+      setItems([...otherItems, ...itemsInSameCategory]);
     } else {
       const movedItem = items.find(item => item.id === draggableId);
       if (movedItem) {
@@ -77,17 +88,34 @@ function App() {
     }
   };
 
+  const handleAddItemToCategory = (category) => {
+    setAddingItemCategory(category);
+  };
+
+  const handleCancelAddItem = () => {
+    setAddingItemCategory(null);
+  };
+
   return (
     <div className="container">
       <h1> 냉장고 재고 🍅 </h1>
-      <CategoryForm onAddCategory={addCategory} />
-      <FridgeForm onAdd={addItem} categories={categories} />
+      <div className="form-toggle-buttons">
+        <button onClick={() => setShowCategoryForm(!showCategoryForm)}>
+          카테고리 추가
+        </button>
+      </div>
+      {showCategoryForm && <CategoryForm onAddCategory={addCategory} onCancel={() => setShowCategoryForm(false)} />}
       <FridgeList 
         items={items} 
         categories={categories} 
         onRemove={removeItem} 
         onDragEnd={handleDragEnd} 
         onDeleteCategory={deleteCategory}
+        onEdit={editItem}
+        onAddItemToCategory={handleAddItemToCategory}
+        addingItemCategory={addingItemCategory}
+        onCancelAddItem={handleCancelAddItem}
+        onAdd={addItem}
       />
       <footer className="app-footer">
         <p>

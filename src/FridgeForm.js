@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
-function FridgeForm({ onAdd, categories }) {
+function FridgeForm({ onAdd, categories, onCancel, preselectedCategory }) {
   const [name, setName] = useState('');
   const [count, setCount] = useState(1);
   const [expiryDate, setExpiryDate] = useState(null);
   const [useByDate, setUseByDate] = useState(null);
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState(preselectedCategory || '');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ function FridgeForm({ onAdd, categories }) {
         selected={expiryDate}
         onChange={(date) => setExpiryDate(date)}
         dateFormat="yyyy/MM/dd"
-        placeholderText="유통기한"
+        placeholderText="냉장고 들어간 날짜"
         className="form-control"
       />
       <DatePicker
@@ -69,6 +69,7 @@ function FridgeForm({ onAdd, categories }) {
         ))}
       </datalist>
       <button type="submit">식재료 추가</button>
+      <button type="button" onClick={onCancel} className="x-btn">X</button>
     </form>
   );
 }

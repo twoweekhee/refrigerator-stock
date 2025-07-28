@@ -1,7 +1,10 @@
 import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import FridgeForm from './FridgeForm'; // Import FridgeForm
 
-function FridgeList({ items, categories, onRemove, onDragEnd, onDeleteCategory }) {
+function FridgeList({ items, categories, onRemove, onDragEnd, onDeleteCategory, onEdit, onAddItemToCategory, addingItemCategory, onCancelAddItem, onAdd }) {
   const getExpiryClass = (useByDate) => {
     if (!useByDate) return '';
     const today = new Date();
@@ -14,9 +17,19 @@ function FridgeList({ items, categories, onRemove, onDragEnd, onDeleteCategory }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return null; // Return null for DatePicker if no dateString
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR');
+    return date;
+  };
+
+  const handleCountChange = (itemId, currentCount, delta) => {
+    const newCount = Math.max(1, currentCount + delta); // Ensure count is at least 1
+    onEdit(itemId, { count: newCount });
+  };
+
+  const handleDateChange = (itemId, field, date) => {
+    const dateString = date ? date.toISOString().split('T')[0] : '';
+    onEdit(itemId, { [field]: dateString });
   };
 
   const itemsByCategory = items.reduce((acc, item) => {
@@ -36,43 +49,86 @@ function FridgeList({ items, categories, onRemove, onDragEnd, onDeleteCategory }
           <div key={category} className="category-group">
             <h2>
               {category}
-              {category !== '기타' && (
-                <button onClick={() => onDeleteCategory(category)} className="delete-category-btn">카테고리 삭제</button>
-              )}
+              <div className="category-actions">
+                <button onClick={() => onAddItemToCategory(category)} className="add-item-btn"> + 식재료 추가</button>
+                {category !== '기타' && (
+                  <button onClick={() => onDeleteCategory(category)} className="delete-category-btn">카테고리 삭제</button>
+                )}
+              </div>
             </h2>
             <Droppable droppableId={category}>
               {(provided, snapshot) => (
-                <ul
+                <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className={`list ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
+                  className={`card-list-wrapper ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
                 >
-                  {(itemsByCategory[category] || []).map((item, index) => (
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
-                      {(provided) => (
-                        <li
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`list-item ${getExpiryClass(item.useByDate)}`}
-                        >
-                          <div className="item-info">
-                            <span className="item-name">{item.name} ({item.count}개)</span>
-                            <div className="item-dates">
-                              <span className="expiry-text">유통기한: {formatDate(item.expiryDate)}</span>
-                              <span className="use-by-text">소비기한: {formatDate(item.useByDate)}</span>
+                  <div className="item-cards-container">
+                    {(itemsByCategory[category] || []).map((item, index) => (
+                      <Draggable key={item.id} draggableId={item.id} index={index}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.dragHandleProps}
+                            {...provided.draggableProps}
+                            className={`item-card ${getExpiryClass(item.useByDate)}`}
+                          >
+                            <div className="card-header">
+                              <span className="item-name">{item.name}</span>
+                              <button onClick={() => onRemove(item.id)} className="delete-item-btn">삭제</button>
+                            </div>
+                            <div className="card-body">
+                              <div className="card-row">
+                                <span className="card-label">수량:</span>
+                                <div className="item-count-controls">
+                                  <button onClick={() => handleCountChange(item.id, item.count, -1)}>-</button>
+                                  <span>{item.count}</span>
+                                  <button onClick={() => handleCountChange(item.id, item.count, 1)}>+</button>
+                                </div>
+                              </div>
+                              <div className="card-row">
+                                <span className="card-label">냉장고에 넣은 날짜:</span>
+                                <DatePicker
+                                  selected={formatDate(item.expiryDate)}
+                                  onChange={(date) => handleDateChange(item.id, 'expiryDate', date)}
+                                  dateFormat="yyyy/MM/dd"
+                                  placeholderText="냉장고에 넣은 날짜"
+                                  className="date-picker-input"
+                                />
+                              </div>
+                              <div className="card-row">
+                                <span className="card-label">소비기한:</span>
+                                <DatePicker
+                                  selected={formatDate(item.useByDate)}
+                                  onChange={(date) => handleDateChange(item.id, 'useByDate', date)}
+                                  dateFormat="yyyy/MM/dd"
+                                  placeholderText="소비기한"
+                                  className="date-picker-input"
+                                />
+                              </div>
                             </div>
                           </div>
-                          <button onClick={() => onRemove(item.id)}>삭제</button>
-                        </li>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                  {(itemsByCategory[category] || []).length === 0 && (
-                    <div className="empty-list-message">항목을 추가하세요.</div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    {addingItemCategory === category && (
+                      <div className="item-card new-item-form-card">
+                        <FridgeForm 
+                          onAdd={onAdd} 
+                          categories={categories} 
+                          preselectedCategory={category} 
+                          onCancel={onCancelAddItem} 
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {(itemsByCategory[category] || []).length === 0 && addingItemCategory !== category && (
+                    <div className="empty-category-state">
+                      <p className="empty-message">아직 식재료가 없습니다</p>
+                    </div>
                   )}
-                </ul>
+                </div>
               )}
             </Droppable>
           </div>
