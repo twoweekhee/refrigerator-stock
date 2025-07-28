@@ -87,8 +87,15 @@ function App() {
         categories={categories} 
         onRemove={removeItem} 
         onDragEnd={handleDragEnd} 
-        onDeleteCategory={deleteCategory} // Pass deleteCategory
+        onDeleteCategory={deleteCategory}
       />
+      <footer className="app-footer">
+        <p>
+          <a href="https://github.com/twoweekhee" target="_blank" rel="noopener noreferrer">🐙 GitHub</a> |
+          <a href="https://www.instagram.com/200.dorahee" target="_blank" rel="noopener noreferrer">🐠 Instagram</a>
+        </p>
+        <p> 🚀 Built by twoweekhee </p>
+      </footer>
     </div>
   );
 }

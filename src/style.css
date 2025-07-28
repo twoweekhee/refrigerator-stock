@@ -232,3 +232,22 @@ button[type="submit"]:hover {
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   }
 }
+
+.app-footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.app-footer a {
+  color: #007bff;
+  text-decoration: none;
+  margin: 0 0.5rem;
+}
+
+.app-footer a:hover {
+  text-decoration: underline;
+}
